@@ -17,8 +17,9 @@ Contains repository to build orb_slam2 with catkin_make
 * `source ./devel/setup.bash`
 
 To run orbslam2 
+* The ORBvoc.txt has to be extracted from the tar file. `tar -xzf ORBvoc.txt.tar.gz` to unzip the vocabulary.
 
-* `rosrun orb_slam orb_slam /ORB_SLAM2/Vocabulary/ORBvoc.txt /path/to/camera_parameters.yaml true`
+* `rosrun orb_slam orb_slam /Vocabulary/ORBvoc.txt /path/to/camera_parameters.yaml true`
 
 Related Publications:
 
