@@ -44,7 +44,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -O3 -march=native")
 
 add_subdirectory(Thirdparty/DBoW2)
 
-add_executable(${PROJECT_NAME}
+add_executable(${PROJECT_NAME}_stereo
   src/ros_stereo.cc
   src/System.cc
   src/Tracking.cc
@@ -66,7 +66,37 @@ add_executable(${PROJECT_NAME}
   src/Initializer.cc
   src/Viewer.cc
 )
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME}_stereo
+  ${catkin_LIBRARIES}
+  ${EIGEN3_LIBS}
+  ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
+  ${Pangolin_LIBRARIES}
+  DBoW2
+)
+
+add_executable(${PROJECT_NAME}_mono
+  src/ros_mono.cc
+  src/System.cc
+  src/Tracking.cc
+  src/LocalMapping.cc
+  src/LoopClosing.cc
+  src/ORBextractor.cc
+  src/ORBmatcher.cc
+  src/FrameDrawer.cc
+  src/Converter.cc
+  src/MapPoint.cc
+  src/KeyFrame.cc
+  src/Map.cc
+  src/MapDrawer.cc
+  src/Optimizer.cc
+  src/PnPsolver.cc
+  src/Frame.cc
+  src/KeyFrameDatabase.cc
+  src/Sim3Solver.cc
+  src/Initializer.cc
+  src/Viewer.cc
+)
+target_link_libraries(${PROJECT_NAME}_mono
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBS}
   ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
