@@ -1,2 +1,5 @@
 orbslam2_catkin/cmake-build-debug/
 orbslam2_catkin/.idea/
+.vscode/
+Data/ORBvoc.yml
+Vocabulary/ORBvoc.txt

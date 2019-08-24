@@ -30,17 +30,20 @@
 #include<opencv2/core/core.hpp>
 
 #include"System.h"
+#include"RosPublisher.h"
 
 using namespace std;
 
-class ImageGrabber
+class ImageGrabber : public RosPublisher
 {
 public:
-    ImageGrabber(ORB_SLAM2::System* pSLAM):mpSLAM(pSLAM){}
+    public:
+    ImageGrabber (const ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
+    ~ImageGrabber ();
+    void ImageCallback (const sensor_msgs::ImageConstPtr& msg);
 
-    void GrabImage(const sensor_msgs::ImageConstPtr& msg);
-
-    ORB_SLAM2::System* mpSLAM;
+  private:
+    image_transport::Subscriber image_subscriber;
 };
 
 int main(int argc, char **argv)
@@ -48,47 +51,44 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "Mono");
     ros::start();
 
-    if(argc != 3)
-    {
-        cerr << endl << "Usage: rosrun ORB_SLAM2 Mono path_to_vocabulary path_to_settings" << endl;        
-        ros::shutdown();
-        return 1;
-    }    
+    if(argc > 1) {
+        ROS_WARN ("Arguments supplied via command line are neglected.");
+    }
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::MONOCULAR,true);
+    ros::NodeHandle node_handle;
+    image_transport::ImageTransport image_transport (node_handle);
 
-    ImageGrabber igb(&SLAM);
-
-    ros::NodeHandle nodeHandler;
-    ros::Subscriber sub = nodeHandler.subscribe("/camera/image_raw", 1, &ImageGrabber::GrabImage,&igb);
+    ImageGrabber node (ORB_SLAM2::System::MONOCULAR, node_handle, image_transport);
 
     ros::spin();
-
-    // Stop all threads
-    SLAM.Shutdown();
-
-    // Save camera trajectory
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
 
     ros::shutdown();
 
     return 0;
 }
 
-void ImageGrabber::GrabImage(const sensor_msgs::ImageConstPtr& msg)
-{
-    // Copy the ros image message to cv::Mat.
-    cv_bridge::CvImageConstPtr cv_ptr;
-    try
-    {
-        cv_ptr = cv_bridge::toCvShare(msg);
-    }
-    catch (cv_bridge::Exception& e)
-    {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
-        return;
-    }
+ImageGrabber::ImageGrabber (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) : RosPublisher (sensor, node_handle, image_transport) {
+  image_subscriber = image_transport.subscribe ("/camera/image_raw", 1, &ImageGrabber::ImageCallback, this);
+}
 
-    mpSLAM->TrackMonocular(cv_ptr->image,cv_ptr->header.stamp.toSec());
+
+ImageGrabber::~ImageGrabber () {
+}
+
+
+void ImageGrabber::ImageCallback (const sensor_msgs::ImageConstPtr& msg) {
+  cv_bridge::CvImageConstPtr cv_in_ptr;
+  try {
+      cv_in_ptr = cv_bridge::toCvShare(msg);
+  } catch (cv_bridge::Exception& e) {
+      ROS_ERROR("cv_bridge exception: %s", e.what());
+      return;
+  }
+
+  current_frame_time_ = msg->header.stamp;
+
+  orb_slam_->TrackMonocular(cv_in_ptr->image,cv_in_ptr->header.stamp.toSec());
+
+  Update ();
 }

@@ -1,0 +1,24 @@
+<launch>
+  <node name="orb_slam_stereo" pkg="orb_slam"
+      type="orb_slam_stereo" output="screen">
+
+       <remap from="image_left/image_color_rect" to="/cam0/image_raw" />
+       <remap from="image_right/image_color_rect" to="/cam1/image_raw" />
+
+       <param name="publish_pointcloud" type="bool" value="true" />
+       <param name="do_rectify" type="bool" value="true" />
+       <param name="publish_pose" type="bool" value="true" />
+       <param name="localize_only" type="bool" value="false" />
+       <param name="reset_map" type="bool" value="false" />
+
+       <!-- static parameters -->
+       <param name="load_map" type="bool" value="false" />
+       <param name="map_file" type="string" value="map.bin" />
+       <param name="settings_file" type="string" value="$(find orb_slam)/calib/Stereo/EuRoC.yaml" />
+       <param name="voc_file" type="string" value="$(find orb_slam)/Vocabulary/ORBvoc.txt" />
+
+       <param name="pointcloud_frame_id" type="string" value="map" />
+       <param name="camera_frame_id" type="string" value="camera_link" />
+       <param name="min_num_kf_in_map" type="int" value="5" />
+  </node>
+</launch>
