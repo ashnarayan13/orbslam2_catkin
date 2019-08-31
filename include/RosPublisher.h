@@ -51,17 +51,19 @@ class RosPublisher
     ORB_SLAM2::System* orb_slam_;
 
     ros::Time current_frame_time_;
+    std_msgs::Header input_header;
 
   private:
     void PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points);
     void PublishPositionAsTransform (cv::Mat position);
     void PublishPositionAsPoseStamped(cv::Mat position);
     void PublishRenderedImage (cv::Mat image);
+    void PublishInputImage(cv::Mat image);
     
     tf::Transform TransformFromMat (cv::Mat position_mat);
     sensor_msgs::PointCloud2 MapPointsToPointCloud (std::vector<ORB_SLAM2::MapPoint*> map_points);
 
-    image_transport::Publisher rendered_image_publisher_;
+    image_transport::Publisher rendered_image_publisher_, input_image_publisher_;
     ros::Publisher map_points_publisher_;
     ros::Publisher pose_publisher_;
 
@@ -78,6 +80,7 @@ class RosPublisher
     bool publish_pose_param_;
     int min_observations_per_point_;
     bool do_rectify_param_;
+    std::vector<cv::KeyPoint> feature_points_list;
 };
 
 #endif //ROSPUBLISHER_H_

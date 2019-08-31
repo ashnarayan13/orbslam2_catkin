@@ -57,6 +57,33 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
        exit(-1);
     }
 
+    // Store camera calib
+
+    float fx = fsSettings["Camera.fx"];
+    float fy = fsSettings["Camera.fy"];
+    float cx = fsSettings["Camera.cx"];
+    float cy = fsSettings["Camera.cy"];
+
+    cv::Mat K = cv::Mat::eye(3,3,CV_32F);
+    K.at<float>(0,0) = fx;
+    K.at<float>(1,1) = fy;
+    K.at<float>(0,2) = cx;
+    K.at<float>(1,2) = cy;
+    K.copyTo(mK);
+
+    cv::Mat DistCoef(4,1,CV_32F);
+    DistCoef.at<float>(0) = fsSettings["Camera.k1"];
+    DistCoef.at<float>(1) = fsSettings["Camera.k2"];
+    DistCoef.at<float>(2) = fsSettings["Camera.p1"];
+    DistCoef.at<float>(3) = fsSettings["Camera.p2"];
+    const float k3 = fsSettings["Camera.k3"];
+    if(k3!=0)
+    {
+        DistCoef.resize(5);
+        DistCoef.at<float>(4) = k3;
+    }
+    DistCoef.copyTo(mDistCoef);
+
 
     //Load ORB Vocabulary
     cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
@@ -261,6 +288,9 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
 
     cv::Mat Tcw = mpTracker->GrabImageMonocular(im,timestamp);
 
+    // store undistorted image RGB
+    cv::undistort(im,currentImage,mK,mDistCoef);
+    
     unique_lock<mutex> lock2(mMutexState);
     mTrackingState = mpTracker->mState;
     mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
@@ -502,6 +532,10 @@ cv::Mat System::GetCurrentPosition () {
 
 cv::Mat System::DrawCurrentFrame () {
   return mpFrameDrawer->DrawFrame();
+}
+
+cv::Mat System::GetCurrentImage() {
+    return currentImage;
 }
 
 } //namespace ORB_SLAM

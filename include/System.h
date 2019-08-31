@@ -126,6 +126,7 @@ public:
     int GetTrackingState();
     std::vector<MapPoint*> GetTrackedMapPoints();
     std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
+    cv::Mat GetCurrentImage();
 
 private:
 
@@ -182,6 +183,11 @@ private:
 
     // Current position
     cv::Mat current_position_;
+    cv::Mat currentImage;
+
+    //Calibration matrix
+    cv::Mat mK;
+    cv::Mat mDistCoef;
 };
 
 }// namespace ORB_SLAM

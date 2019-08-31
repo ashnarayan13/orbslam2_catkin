@@ -105,3 +105,34 @@ target_link_libraries(${PROJECT_NAME}_mono
   ${Pangolin_LIBRARIES}
   DBoW2
 )
+
+add_executable(${PROJECT_NAME}_rgbd
+  src/ros_rgbd.cc
+  src/System.cc
+  src/Tracking.cc
+  src/LocalMapping.cc
+  src/LoopClosing.cc
+  src/ORBextractor.cc
+  src/ORBmatcher.cc
+  src/FrameDrawer.cc
+  src/Converter.cc
+  src/MapPoint.cc
+  src/KeyFrame.cc
+  src/Map.cc
+  src/MapDrawer.cc
+  src/Optimizer.cc
+  src/PnPsolver.cc
+  src/Frame.cc
+  src/KeyFrameDatabase.cc
+  src/Sim3Solver.cc
+  src/Initializer.cc
+  src/Viewer.cc
+  src/RosPublisher.cc
+)
+target_link_libraries(${PROJECT_NAME}_rgbd
+  ${catkin_LIBRARIES}
+  ${EIGEN3_LIBS}
+  ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
+  ${Pangolin_LIBRARIES}
+  DBoW2
+)

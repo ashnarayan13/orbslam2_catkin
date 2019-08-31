@@ -70,6 +70,7 @@ int main(int argc, char **argv)
 
 ImageGrabber::ImageGrabber (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) : RosPublisher (sensor, node_handle, image_transport) {
   image_subscriber = image_transport.subscribe ("/camera/image_raw", 1, &ImageGrabber::ImageCallback, this);
+  std::cout<<"Image Grabber constructor called \n";
 }
 
 
@@ -87,6 +88,7 @@ void ImageGrabber::ImageCallback (const sensor_msgs::ImageConstPtr& msg) {
   }
 
   current_frame_time_ = msg->header.stamp;
+  input_header = msg->header;
 
   orb_slam_->TrackMonocular(cv_in_ptr->image,cv_in_ptr->header.stamp.toSec());
 

@@ -1,4 +1,5 @@
 #include "RosPublisher.h"
+#include <fstream>
 
 #include <iostream>
 
@@ -20,6 +21,7 @@ RosPublisher::RosPublisher (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &
   orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, settings_file_name_param_, sensor);
 
   rendered_image_publisher_ = image_transport.advertise (name_of_node_+"/debug_image", 1);
+  input_image_publisher_ = image_transport.advertise (name_of_node_+"/input_image", 1);
   if (publish_pointcloud_param_) {
     map_points_publisher_ = node_handle_.advertise<sensor_msgs::PointCloud2> (name_of_node_+"/map_points", 1);
   }
@@ -56,6 +58,12 @@ void RosPublisher::Update () {
 
   PublishRenderedImage (orb_slam_->DrawCurrentFrame());
 
+  if(orb_slam_->GetTrackingState() == 2) // check if tracking is OK
+  {
+    feature_points_list = orb_slam_->GetTrackedKeyPointsUn();
+    PublishInputImage(orb_slam_->GetCurrentImage());
+  }
+
   if (publish_pointcloud_param_) {
     PublishMapPoints (orb_slam_->GetAllMapPoints());
   }
@@ -90,6 +98,28 @@ void RosPublisher::PublishRenderedImage (cv::Mat image) {
   header.frame_id = map_frame_id_param_;
   const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(header, "bgr8", image).toImageMsg();
   rendered_image_publisher_.publish(rendered_image_msg);
+}
+
+void RosPublisher::PublishInputImage(cv::Mat image) {
+
+
+  // Try getting points
+  const int n = feature_points_list.size();
+  const float r = 5;
+  for(int i=0;i<n;i++)
+  {
+    cv::Point2f pt1,pt2;
+    pt1.x=feature_points_list[i].pt.x-r;
+    pt1.y=feature_points_list[i].pt.y-r;
+    pt2.x=feature_points_list[i].pt.x+r;
+    pt2.y=feature_points_list[i].pt.y+r;
+
+    cv::rectangle(image,pt1,pt2,cv::Scalar(0,255,0));
+    cv::circle(image,feature_points_list[i].pt,2,cv::Scalar(0,255,0),-1);
+  }
+    const sensor_msgs::ImagePtr input_image_msg = cv_bridge::CvImage(input_header, "bgr8", image).toImageMsg();
+
+  input_image_publisher_.publish(input_image_msg);
 }
 
 
@@ -136,6 +166,28 @@ sensor_msgs::PointCloud2 RosPublisher::MapPointsToPointCloud (std::vector<ORB_SL
   sensor_msgs::PointCloud2 cloud;
 
   const int num_channels = 3; // x y z
+
+  std::fstream fs;
+
+  fs.open ("/home/nomad/projects/map.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+  if(map_points.size()>0)
+  {
+    for(unsigned int i=0; i<map_points.size(); ++i) {
+      fs<<map_points.at(i)->mTrackProjX<<" "<<map_points.at(i)->mTrackProjY<<std::endl;
+    }
+  }
+  fs<<"End of MAP\n\n\n";
+  fs.close();
+
+  fs.open ("/home/nomad/projects/feature.txt", std::fstream::in | std::fstream::out | std::fstream::app);
+  if(feature_points_list.size()>0)
+  {
+    for(unsigned int i=0; i<feature_points_list.size(); ++i) {
+      fs<<feature_points_list[i].pt.x<<" "<<feature_points_list[i].pt.y<<std::endl;
+    }
+  }
+  fs<<"End of FEATURE\n\n\n";
+  fs.close();
 
   cloud.header.stamp = current_frame_time_;
   cloud.header.frame_id = map_frame_id_param_;
