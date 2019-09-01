@@ -66,6 +66,7 @@ add_executable(${PROJECT_NAME}_stereo
   src/Initializer.cc
   src/Viewer.cc
   src/RosPublisher.cc
+  src/ProbabilityMapping.cc
 )
 target_link_libraries(${PROJECT_NAME}_stereo
   ${catkin_LIBRARIES}
@@ -97,6 +98,7 @@ add_executable(${PROJECT_NAME}_mono
   src/Initializer.cc
   src/Viewer.cc
   src/RosPublisher.cc
+  src/ProbabilityMapping.cc
 )
 target_link_libraries(${PROJECT_NAME}_mono
   ${catkin_LIBRARIES}

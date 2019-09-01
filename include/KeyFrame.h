@@ -22,6 +22,7 @@
 #define KEYFRAME_H
 
 #include "MapPoint.h"
+#include "ProbabilityMapping.h"
 #include "Thirdparty/DBoW2/DBoW2/BowVector.h"
 #include "Thirdparty/DBoW2/DBoW2/FeatureVector.h"
 #include "ORBVocabulary.h"
@@ -116,10 +117,34 @@ public:
         return pKF1->mnId<pKF2->mnId;
     }
 
+    // used in semidense
+    cv::Mat GetImage();
+    cv::KeyPoint GetKeyPointUn(const size_t &idx) const;
+    int GetKeyPointScaleLevel(const size_t &idx) const;
+    cv::Mat GetDescriptor(const size_t &idx);
+    cv::Mat GetDescriptors();
+    vector< cv::KeyPoint > GetKeyPoints() const;
+    vector< cv::KeyPoint > GetKeyPointsUn() const;
+    cv::Mat GetCalibrationMatrix() const;
+    DBoW2::FeatureVector GetFeatureVector();
+    std::vector<float> GetAllPointDepths(int q = 2); //modeled after: float ComputeSceneMedianDepth(int q = 2);
 
     // The following variables are accesed from only 1 thread or never change (no mutex needed).
 public:
-
+/***********semi dense*******************************/
+    // img used to semidense
+    cv::Mat im_;
+    cv::Mat rgb_;
+    bool semidense_flag_;  // whether this frame have build dense map or not?
+    std::vector<std::vector<ProbabilityMapping::depthHo> > SemiDenseMatrix;
+    cv::Mat GradImg,GradTheta;
+    double I_stddev;
+    cv::Mat depth_map_;
+    cv::Mat depth_sigma_;
+    //std::vector< Eigen::Vector3f > SemiDensePointSets_;
+    cv::Mat SemiDensePointSets_;
+/******************************************/
+    //
     static long unsigned int nNextId;
     long unsigned int mnId;
     const long unsigned int mnFrameId;
